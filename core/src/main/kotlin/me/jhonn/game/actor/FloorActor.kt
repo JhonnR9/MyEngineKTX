@@ -1,41 +1,51 @@
 package me.jhonn.game.actor
 
-import com.badlogic.gdx.physics.box2d.Body
-import com.badlogic.gdx.physics.box2d.BodyDef
-import com.badlogic.gdx.physics.box2d.FixtureDef
-import com.badlogic.gdx.physics.box2d.PolygonShape
+import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.physics.box2d.*
 import ktx.assets.disposeSafely
-import ktx.scene2d.Scene2DSkin
-import me.jhonn.game.box2d.Box2DModel
 
-class FloorActor(x: Float, y: Float, box2DModel: Box2DModel) : AbstractActor(x, y, box2DModel) {
+class FloorActor(x: Float, y: Float, world: World) : AbstractActor(world) {
+    private lateinit var fixture: Fixture
+
     init {
+        setPosition(x, y)
+        setSize(16f, 0.5f)
+        color = Color.FOREST
+    }
 
-        frame = Scene2DSkin.defaultSkin.atlas.findRegion("white")
-        width = 16f
-        height = 1f
+    init {
+        val myBodyDef = BodyDef().apply {
+            type = BodyDef.BodyType.StaticBody
+            position.set(x + originX, y + originY)
+            angle = 0f
+        }
+        body = world.createBody(myBodyDef)
+        updateFixture()
 
-        val bodyDef = BodyDef()
-        bodyDef.type = BodyDef.BodyType.StaticBody
-        bodyDef.position.set(x + (width / 2), y + (height / 2))
-
-
-        body = box2DModel.world.createBody(bodyDef)
-
-        val shape = PolygonShape()
-        shape.setAsBox(width / 2, height / 2)
-        val fixtureDef = FixtureDef()
-        fixtureDef.shape = shape
-        fixtureDef.density = 2f
-        body.createFixture(shape, 2f)
-
-        shape.disposeSafely()
 
     }
 
-    override fun act(delta: Float) {
-        super.act(delta)
-        this.x = body.position.x - width / 2
-        this.y = body.position.y - height / 2
+    private fun updateFixture() {
+        try {
+            if (::fixture.isInitialized) body.destroyFixture(fixture)
+            val polygonShape = PolygonShape()
+            polygonShape.setAsBox(originX, originY)
+
+            val fixtureDef = FixtureDef()
+            fixtureDef.apply {
+                shape = polygonShape
+                density = 1f
+            }
+            fixture = body.createFixture(fixtureDef)
+            polygonShape.disposeSafely()
+        } catch (_: RuntimeException) {
+
+        }
+    }
+
+
+    override fun sizeChanged() {
+        super.sizeChanged()
+        updateFixture()
     }
 }

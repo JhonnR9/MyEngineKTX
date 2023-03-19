@@ -8,8 +8,9 @@ import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.Box2D
 import com.badlogic.gdx.physics.box2d.World
-import com.badlogic.gdx.scenes.scene2d.Actor
+import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.assets.disposeSafely
+import me.jhonn.game.actor.AbstractActor
 import me.jhonn.game.constant.GameConstant
 
 
@@ -18,10 +19,10 @@ class Box2DModel {
     val world: World
     private var accumulator = 0f
     private lateinit var worldBounds: Rectangle
-    var isPaused = false
+    private var isPaused = false
 
     companion object {
-        const val GRAVITY_FORCE_Y = 0f
+        const val GRAVITY_FORCE_Y = -9.8f
         const val GRAVITY_FORCE_X = 0f
     }
 
@@ -32,26 +33,26 @@ class Box2DModel {
     }
 
 
-    fun disposeSafely(){
+    fun disposeSafely() {
         world.disposeSafely()
     }
 
     fun stepWorldBox2d() {
-       if (!isPaused){
-           val deltaTime = Gdx.graphics.deltaTime
-           accumulator += deltaTime.coerceAtMost(0.25f)
-           if (accumulator >= GameConstant.Physical.STEP_TIME) {
-               accumulator -= GameConstant.Physical.STEP_TIME
-               world.step(
-                   GameConstant.Physical.STEP_TIME,
-                   GameConstant.Physical.VELOCITY_ITERATIONS,
-                   GameConstant.Physical.POSITION_ITERATIONS
-               )
-           }
-       }
+        if (!isPaused) {
+            val deltaTime = Gdx.graphics.deltaTime
+            accumulator += deltaTime.coerceAtMost(0.25f)
+            if (accumulator >= GameConstant.Physical.STEP_TIME) {
+                accumulator -= GameConstant.Physical.STEP_TIME
+                world.step(
+                    GameConstant.Physical.STEP_TIME,
+                    GameConstant.Physical.VELOCITY_ITERATIONS,
+                    GameConstant.Physical.POSITION_ITERATIONS
+                )
+            }
+        }
     }
 
-    fun createWorldBoundsOfTiledMap(tiledMap: TiledMap) {
+    fun createWorldBounds(tiledMap: TiledMap) {
         val w = (
             tiledMap.properties.get("width").toString().toFloat()
                 * tiledMap.properties.get("tilewidth")
@@ -64,11 +65,17 @@ class Box2DModel {
         worldBounds = Rectangle(0f, 0f, w, h)
     }
 
-    fun alignCameraToActor(camera: Camera, actor: Actor) {
+    fun createWorldBounds(viewport: Viewport) {
+        val w = viewport.worldWidth
+        val h = viewport.worldHeight
+        worldBounds = Rectangle(0f, 0f, w, h)
+    }
+
+    fun alignCameraToActor(camera: Camera, actor: AbstractActor) {
         camera.apply {
-            // position.set(
-            //actor.body.position.x + me.jhonn.game.constants.ConvertUnits.toBox2DUnits(actor.originX),
-            // actor.body.position.y + me.jhonn.game.constants.ConvertUnits.toBox2DUnits(actor.originY), 0f
+            ///  position.set(
+            // actor.body.position.x + GameConstant.ConvertUnits.toBox2DUnits(actor.originX),
+            // actor.body.position.y + GameConstant.ConvertUnits.toBox2DUnits(actor.originY), 0f
             // )
 
             val minX = viewportWidth / 2
@@ -82,4 +89,5 @@ class Box2DModel {
             update()
         }
     }
+
 }

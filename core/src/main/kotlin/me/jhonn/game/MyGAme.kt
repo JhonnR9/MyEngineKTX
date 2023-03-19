@@ -1,24 +1,21 @@
 package me.jhonn.game
 
-import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.graphics.g2d.TextureRegion
-import com.badlogic.gdx.scenes.scene2d.Event
+import com.badlogic.gdx.physics.box2d.World
 import ktx.app.KtxGame
-import ktx.app.clearScreen
-import ktx.graphics.use
-import ktx.scene2d.*
 import me.jhonn.game.box2d.Box2DModel
-import me.jhonn.game.constant.GameConstant.ConvertUnits.toBox2DUnits
 import me.jhonn.game.views.AbstractScreen
 import me.jhonn.game.views.MenuScreen
 import me.jhonn.game.views.TestGame
 
 class MyGAme : KtxGame<AbstractScreen>() {
+
     val isDebug = false
-    lateinit var box2DModel: Box2DModel
+    private lateinit var box2DModel: Box2DModel
+    lateinit var world: World
 
     override fun create() {
         box2DModel = Box2DModel()
+        world = box2DModel.world
         addScreens()
         setScreen<MenuScreen>()
     }

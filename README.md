@@ -2,13 +2,20 @@
 
 A [libGDX](https://libgdx.com/) project generated with [gdx-liftoff](https://github.com/tommyettinger/gdx-liftoff).
 
-This project was generated with a Kotlin project template that includes Kotlin application launchers and [KTX](https://libktx.github.io/) utilities.
+This project was generated with a Kotlin project template that includes Kotlin application launchers
+and [KTX](https://libktx.github.io/) utilities.
 
 ## Platforms
 
 - `core`: Main module with the application logic shared by all platforms.
 - `lwjgl3`: Primary desktop platform using LWJGL3.
 - `android`: Android mobile platform. Needs Android SDK.
+
+## Screenshots
+
+<p align="left">
+  <img src="screenshot.png" width="300" title="hover text">
+</p>
 
 ## Gradle
 
@@ -31,5 +38,6 @@ Useful Gradle tasks and flags:
 - `lwjgl3:run`: starts the application.
 - `test`: runs unit tests (if any).
 
-Note that most tasks that are not specific to a single project can be run with `name:` prefix, where the `name` should be replaced with the ID of a specific project.
+Note that most tasks that are not specific to a single project can be run with `name:` prefix, where the `name` should
+be replaced with the ID of a specific project.
 For example, `core:clean` removes `build` folder only from the `core` project.
