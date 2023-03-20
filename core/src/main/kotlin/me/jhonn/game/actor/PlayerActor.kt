@@ -15,7 +15,10 @@ import ktx.assets.disposeSafely
 
 class PlayerActor(x: Float, y: Float, world: World) : AbstractActor(world), InputProcessor {
     private var moveState: MoveState = MoveState.MS_STOP
-    private var isJumping = false
+    var maxVelocity = 3f
+    var moveForce = 8f
+    var jumpForce = 8f
+    var onTheFloor = true
 
     init {
         setPosition(x, y)
@@ -30,7 +33,7 @@ class PlayerActor(x: Float, y: Float, world: World) : AbstractActor(world), Inpu
         } else if (Gdx.input.isKeyPressed(Keys.RIGHT)) {
             moveState = MoveState.MS_RIGHT
         }
-        move()
+        limitVelocity()
 
     }
 
@@ -49,38 +52,52 @@ class PlayerActor(x: Float, y: Float, world: World) : AbstractActor(world), Inpu
         val fixtureDef = FixtureDef()
         fixtureDef.apply {
             shape = polygonShape
-            density = 10f
-            friction = 5f
+            density = 1f
+            friction = .5f
         }
 
-        body.createFixture(fixtureDef)
+        body.createFixture(fixtureDef).apply { userData = this@PlayerActor }
+
         polygonShape.disposeSafely()
+
+    }
+
+    private fun limitVelocity() {
+        val velocity = body.linearVelocity.len()
+
+        if (velocity <= maxVelocity) {
+            move()
+        } else {
+            body.linearDamping = .2f
+        }
 
     }
 
     private fun move() {
         when (moveState) {
-
             MoveState.MS_LEFT -> {
-                val impulse = body.mass * Gdx.graphics.deltaTime * 20
-                body.applyLinearImpulse(Vector2(-impulse, 0f), body.position, true)
+                val force = body.mass * Gdx.graphics.deltaTime * Gdx.graphics.framesPerSecond * moveForce
+                body.applyForce(Vector2(-force, 0f), body.position, true)
             }
 
             MoveState.MS_RIGHT -> {
-                val impulse = body.mass * Gdx.graphics.deltaTime * 20
-                body.applyLinearImpulse(Vector2(impulse, 0f), body.position, true)
+                val force = body.mass * Gdx.graphics.deltaTime * Gdx.graphics.framesPerSecond * moveForce
+                body.applyForce(Vector2(force, 0f), body.position, true)
             }
 
             MoveState.MS_STOP -> {
-                return
+                body.linearDamping = 1f
             }
         }
+
+
     }
 
     private fun jump() {
-        isJumping = true
-        val impulse = body.mass * 6f
-        body.applyLinearImpulse(Vector2(0f, impulse), body.position, true)
+        if (onTheFloor) {
+            val impulse = body.mass * jumpForce * Gdx.graphics.deltaTime * Gdx.graphics.framesPerSecond
+            body.applyLinearImpulse(Vector2(0f, impulse), body.position, true)
+        }
     }
 
     override fun keyDown(keycode: Int): Boolean {

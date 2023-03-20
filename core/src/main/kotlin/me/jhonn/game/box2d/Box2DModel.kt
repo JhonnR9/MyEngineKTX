@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.Box2D
+import com.badlogic.gdx.physics.box2d.ContactListener
 import com.badlogic.gdx.physics.box2d.World
 import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.assets.disposeSafely
@@ -19,7 +20,8 @@ class Box2DModel {
     val world: World
     private var accumulator = 0f
     private lateinit var worldBounds: Rectangle
-    private var isPaused = false
+    private lateinit var listener: ContactListener
+    var isPaused = false
 
     companion object {
         const val GRAVITY_FORCE_Y = -9.8f
@@ -30,6 +32,8 @@ class Box2DModel {
         Box2D.init()
         gravity = Vector2(GRAVITY_FORCE_X, GRAVITY_FORCE_Y)
         world = World(gravity, true)
+        listener = Box2DContactListener()
+        world.setContactListener(listener)
     }
 
 

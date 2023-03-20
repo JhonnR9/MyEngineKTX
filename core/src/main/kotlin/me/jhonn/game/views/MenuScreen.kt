@@ -1,8 +1,6 @@
 package me.jhonn.game.views
 
 import com.badlogic.gdx.scenes.scene2d.Event
-import ktx.app.KtxGame
-import ktx.app.clearScreen
 import ktx.scene2d.scene2d
 import ktx.scene2d.table
 import ktx.scene2d.textButton
@@ -14,7 +12,7 @@ class MenuScreen(private val game: MyGAme) : AbstractScreen(game) {
            if (game.isDebug){
                debug = true
            }
-            centerTable(it, 1f)
+            centerActor(it, 1f)
             background("window")
             textButton("Start").addCaptureListener { event: Event ->
                 if (isTouchDownEvent(event)) {

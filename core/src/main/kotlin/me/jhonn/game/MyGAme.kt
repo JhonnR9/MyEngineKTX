@@ -8,8 +8,8 @@ import me.jhonn.game.views.MenuScreen
 import me.jhonn.game.views.TestGame
 
 class MyGAme : KtxGame<AbstractScreen>() {
-
-    val isDebug = false
+    var isPaused = false
+    var isDebug = false
     private lateinit var box2DModel: Box2DModel
     lateinit var world: World
 
@@ -26,6 +26,7 @@ class MyGAme : KtxGame<AbstractScreen>() {
     }
 
     override fun render() {
+        box2DModel.isPaused = isPaused
         super.render()
         box2DModel.stepWorldBox2d()
     }

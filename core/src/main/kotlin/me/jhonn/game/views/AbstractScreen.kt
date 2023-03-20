@@ -27,7 +27,7 @@ abstract class AbstractScreen(private val game: MyGAme) : Stage(ExtendViewport(V
     companion object {
         const val VIEWPORT_WIDTH = 16f
         const val VIEWPORT_HEIGHT = 9f
-        private var uiScale = 3
+        private var uiScale = 4
         val UI_VIEWPORT_WIDTH = toGameUnits(VIEWPORT_WIDTH) / uiScale
         val UI_VIEWPORT_HEIGHT = toGameUnits(VIEWPORT_HEIGHT) / uiScale
         var worldWidth: Float = 0f
@@ -54,8 +54,8 @@ abstract class AbstractScreen(private val game: MyGAme) : Stage(ExtendViewport(V
 
     private fun halfOf(value: Float) = value * .5f
 
-    fun centerTable(table: Actor, percent: Float) {
-        table.setBounds(
+    fun centerActor(actor: Actor, percent: Float) {
+        actor.setBounds(
             halfOf(UI_VIEWPORT_WIDTH) - halfOf(UI_VIEWPORT_WIDTH * percent),
             halfOf(UI_VIEWPORT_HEIGHT) - halfOf(UI_VIEWPORT_HEIGHT * percent),
             UI_VIEWPORT_WIDTH * percent,
@@ -83,6 +83,8 @@ abstract class AbstractScreen(private val game: MyGAme) : Stage(ExtendViewport(V
     override fun hide() {
         (Gdx.input.inputProcessor as InputMultiplexer).clear()
         super.hide()
+        clear()
+        uiStage.clear()
     }
 
     override fun dispose() {

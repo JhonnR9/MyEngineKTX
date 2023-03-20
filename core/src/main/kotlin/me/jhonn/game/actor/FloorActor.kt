@@ -19,7 +19,8 @@ class FloorActor(x: Float, y: Float, world: World) : AbstractActor(world) {
             position.set(x + originX, y + originY)
             angle = 0f
         }
-        body = world.createBody(myBodyDef)
+        body = world.createBody(myBodyDef).apply { userData = this }
+
         updateFixture()
 
 
@@ -37,6 +38,7 @@ class FloorActor(x: Float, y: Float, world: World) : AbstractActor(world) {
                 density = 1f
             }
             fixture = body.createFixture(fixtureDef)
+            fixture.userData = this
             polygonShape.disposeSafely()
         } catch (_: RuntimeException) {
 
