@@ -1,6 +1,7 @@
 package me.jhonn.game.views
 
 import com.badlogic.gdx.Input.Keys
+import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.physics.box2d.World
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.ui.Label
@@ -11,9 +12,10 @@ import ktx.scene2d.*
 import me.jhonn.game.MyGAme
 import me.jhonn.game.actor.FloorActor
 import me.jhonn.game.actor.PlayerActor
+import me.jhonn.game.preferences.AppPreferences
 
 
-class TestGame(val game: MyGAme) : AbstractScreen(game) {
+class TestGame(val game: MyGAme, val myAssetManager: AssetManager) : AbstractScreen(game, myAssetManager) {
     private var world: World = game.world
     private lateinit var player: PlayerActor
     private lateinit var floor: FloorActor
@@ -23,9 +25,13 @@ class TestGame(val game: MyGAme) : AbstractScreen(game) {
     private lateinit var vLabel: Label
     private lateinit var jLabel: Label
 
+
+    val prefs = AppPreferences()
+
     override fun show() {
         super.show()
-
+        player = PlayerActor(viewport.worldWidth / 2, viewport.worldHeight / 2, world, myAssetManager)
+        floor = FloorActor(0f, 0f, world, myAssetManager)
         val myTable = scene2d.table {
             align(Align.top)
             textButton("reset") {
@@ -35,16 +41,18 @@ class TestGame(val game: MyGAme) : AbstractScreen(game) {
                         world.destroyBody(floor.body)
                         hide()
                         show()
-
                     }
 
                 })
             }
             padLeft(20f)
             checkBox("Is Debug") {
+                isChecked = prefs.isDebug
+                game.isDebug = isChecked
                 addListener(object : ChangeListener() {
                     override fun changed(event: ChangeEvent, actor: Actor) {
                         game.isDebug = isChecked
+                        prefs.isDebug = isChecked
                     }
                 })
             }
@@ -56,10 +64,13 @@ class TestGame(val game: MyGAme) : AbstractScreen(game) {
             pad(10f)
             label("maxVelocity ")
             val vSlider = slider(.5f, 20f, 1f, false) {
+                value = prefs.maxVelocity
+                player.maxVelocity = prefs.maxVelocity
                 addListener(object : ChangeListener() {
                     override fun changed(event: ChangeEvent?, actor: Actor?) {
-                        player.maxVelocity = value
                         vLabel.setText("$value")
+                        player.maxVelocity = value
+                        prefs.maxVelocity = value
                     }
 
                 })
@@ -67,28 +78,35 @@ class TestGame(val game: MyGAme) : AbstractScreen(game) {
             vLabel = label("${vSlider.value}")
             row()
             label("Move Force ")
-            val mSlider = slider(.5f, 20f, 1f, false) {
+            val mSlider = slider(.5f, 30f, 1f, false) {
+                value = prefs.moveForce
+                player.moveForce = value
                 addListener(object : ChangeListener() {
                     override fun changed(event: ChangeEvent?, actor: Actor?) {
                         player.moveForce = value
                         mLabel.setText("$value")
+                        prefs.moveForce = value
                     }
 
                 })
             }
             mLabel = label("${mSlider.value}")
             row()
+
             label("jump Force ")
-            val jSlider = slider(.5f, 20f, 1f, false) {
+            val jSlider = slider(0f, 20f, .2f, false) {
+                value = prefs.jumpForce
+                player.jumpForce = prefs.jumpForce
                 addListener(object : ChangeListener() {
                     override fun changed(event: ChangeEvent?, actor: Actor?) {
                         player.jumpForce = value
-                        jLabel.setText("$value")
+                        jLabel.setText(String.format("%.1f", value))
+                        prefs.jumpForce = value
                     }
 
                 })
             }
-            jLabel = label("${jSlider.value} ")
+            jLabel = label(String.format("%.1f", jSlider.value))
 
         }
 
@@ -96,13 +114,12 @@ class TestGame(val game: MyGAme) : AbstractScreen(game) {
         centerActor(myTable, 1f)
         uiStage.addActor(myTable)
         uiStage.addActor(myWindow)
-        player = PlayerActor(viewport.worldWidth / 2, viewport.worldHeight / 2, world)
-        floor = FloorActor(0f, 0f, world)
 
         addActor(player)
         addActor(floor)
         inputMultiplexer.addProcessor(player)
     }
+
 
     override fun keyDown(keyCode: Int): Boolean {
         if (keyCode == Keys.ESCAPE) {
@@ -111,6 +128,5 @@ class TestGame(val game: MyGAme) : AbstractScreen(game) {
         }
         return super.keyDown(keyCode)
     }
-
 
 }

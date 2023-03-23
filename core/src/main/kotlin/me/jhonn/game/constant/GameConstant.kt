@@ -2,7 +2,7 @@ package me.jhonn.game.constant
 
 class GameConstant {
     object ConvertUnits {
-        const val PPM = 100f
+        const val PPM = 32f
 
 
         fun toGameUnits(value: Float): Float {

@@ -2,6 +2,7 @@ package me.jhonn.game.views
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputMultiplexer
+import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Event
@@ -12,24 +13,28 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport
 import ktx.app.KtxScreen
 import ktx.app.clearScreen
 import ktx.assets.disposeSafely
-import ktx.assets.toInternalFile
 import ktx.scene2d.Scene2DSkin
 import me.jhonn.game.MyGAme
 import me.jhonn.game.constant.GameConstant.ConvertUnits.toGameUnits
 
-abstract class AbstractScreen(private val game: MyGAme) : Stage(ExtendViewport(VIEWPORT_WIDTH, VIEWPORT_HEIGHT)),
+abstract class AbstractScreen(private val game: MyGAme, myAssetManager: AssetManager) :
+    Stage(ExtendViewport(VIEWPORT_WIDTH, VIEWPORT_HEIGHT)),
     KtxScreen {
     val uiStage = Stage(ExtendViewport(UI_VIEWPORT_WIDTH, UI_VIEWPORT_HEIGHT))
-    private val skin = Skin("ui/neon-ui.json".toInternalFile())
+    private val skin: Skin = myAssetManager.get("ui/neon-ui.json")
     private val box2DDebugRenderer = Box2DDebugRenderer(true, true, true, true, true, true)
     val inputMultiplexer = InputMultiplexer()
 
     companion object {
-        const val VIEWPORT_WIDTH = 16f
-        const val VIEWPORT_HEIGHT = 9f
-        private var uiScale = 4
+        private const val scale = .7f
+        private var uiScale = 1
+
+        const val VIEWPORT_WIDTH = 16f * scale
+        const val VIEWPORT_HEIGHT = 9f * scale
+
         val UI_VIEWPORT_WIDTH = toGameUnits(VIEWPORT_WIDTH) / uiScale
         val UI_VIEWPORT_HEIGHT = toGameUnits(VIEWPORT_HEIGHT) / uiScale
+
         var worldWidth: Float = 0f
         var worldHeight: Float = 0f
     }

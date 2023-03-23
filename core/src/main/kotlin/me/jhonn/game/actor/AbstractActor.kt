@@ -1,5 +1,6 @@
 package me.jhonn.game.actor
 
+import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.TextureRegion
@@ -9,13 +10,16 @@ import com.badlogic.gdx.scenes.scene2d.Group
 import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.scene2d.Scene2DSkin
 import me.jhonn.game.constant.GameConstant.ConvertUnits.toBox2DUnits
+import me.jhonn.game.manager.AnimationManager
 import kotlin.random.Random
 
-abstract class AbstractActor(world: World) : Group() {
+abstract class AbstractActor(world: World, myAssetManager: AssetManager) : Group() {
 
     lateinit var body: Body
+    val animationManager = AnimationManager(myAssetManager)
+    var isFlip = false
 
-    private var frame: TextureRegion? = null
+    var frame: TextureRegion? = null
         get() {
             if (field == null) {
                 field = Scene2DSkin.defaultSkin.atlas.findRegion("white")
@@ -24,9 +28,8 @@ abstract class AbstractActor(world: World) : Group() {
         }
         set(textureRegion) {
             if (textureRegion != null) {
-                val texture = textureRegion.texture
-                val w = toBox2DUnits(texture.width)
-                val h = toBox2DUnits(texture.height)
+                val w = toBox2DUnits(textureRegion.regionWidth)
+                val h = toBox2DUnits(textureRegion.regionHeight)
                 this.setPosition(x, y)
                 this.setSize(w, h)
                 field = textureRegion
@@ -76,7 +79,11 @@ abstract class AbstractActor(world: World) : Group() {
     override fun draw(batch: Batch, parentAlpha: Float) {
         if (frame != null) {
             batch.setColor(color.r, color.g, color.b, color.a)
-            batch.draw(frame, x, y, originX, originY, width, height, scaleX, scaleY, rotation)
+            if (isFlip) {
+                batch.draw(frame, x + width, y, originX, originY, -width, height, scaleX, scaleY, rotation)
+            } else {
+                batch.draw(frame, x, y, originX, originY, width, height, scaleX, scaleY, rotation)
+            }
         }
     }
 }

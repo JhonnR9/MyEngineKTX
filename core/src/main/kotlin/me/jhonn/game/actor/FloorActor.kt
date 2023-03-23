@@ -1,10 +1,12 @@
 package me.jhonn.game.actor
 
+import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.physics.box2d.*
 import ktx.assets.disposeSafely
 
-class FloorActor(x: Float, y: Float, world: World) : AbstractActor(world) {
+class FloorActor(x: Float, y: Float, world: World, myAssetManager: AssetManager) :
+    AbstractActor(world, myAssetManager) {
     private lateinit var fixture: Fixture
 
     init {
