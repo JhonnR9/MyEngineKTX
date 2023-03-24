@@ -1,10 +1,8 @@
 package me.jhonn.game
 
-import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.physics.box2d.World
 import ktx.app.KtxGame
 import me.jhonn.game.box2d.Box2DModel
-import me.jhonn.game.manager.MyAssetManager
 import me.jhonn.game.views.AbstractScreen
 import me.jhonn.game.views.MenuScreen
 import me.jhonn.game.views.TestGame
@@ -13,11 +11,11 @@ class MyGAme : KtxGame<AbstractScreen>() {
     var isPaused = false
     var isDebug = false
     private lateinit var box2DModel: Box2DModel
-    private lateinit var myAssetManager: AssetManager
+    private lateinit var assetManager: com.badlogic.gdx.assets.AssetManager
     lateinit var world: World
 
     override fun create() {
-        myAssetManager = MyAssetManager().am
+        assetManager = me.jhonn.game.manager.AssetManager()
         box2DModel = Box2DModel()
         world = box2DModel.world
         addScreens()
@@ -25,8 +23,8 @@ class MyGAme : KtxGame<AbstractScreen>() {
     }
 
     private fun addScreens() {
-        addScreen(MenuScreen(this, myAssetManager))
-        addScreen(TestGame(this, myAssetManager))
+        addScreen(MenuScreen(this, assetManager))
+        addScreen(TestGame(this, assetManager))
     }
 
     override fun render() {

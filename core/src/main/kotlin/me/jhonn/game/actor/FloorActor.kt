@@ -5,8 +5,8 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.physics.box2d.*
 import ktx.assets.disposeSafely
 
-class FloorActor(x: Float, y: Float, world: World, myAssetManager: AssetManager) :
-    AbstractActor(world, myAssetManager) {
+class FloorActor(x: Float, y: Float, world: World, assetManager: AssetManager) :
+    AbstractActor(world, assetManager) {
     private lateinit var fixture: Fixture
 
     init {

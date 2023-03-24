@@ -5,6 +5,7 @@ import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.physics.box2d.World
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.Window
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
 import com.badlogic.gdx.utils.Align
@@ -29,18 +30,32 @@ class TestGame(val game: MyGAme, val myAssetManager: AssetManager) : AbstractScr
     val prefs = AppPreferences()
 
     override fun show() {
-        super.show()
-        player = PlayerActor(viewport.worldWidth / 2, viewport.worldHeight / 2, world, myAssetManager)
+        player = PlayerActor(2f, 4f, world, myAssetManager)
         floor = FloorActor(0f, 0f, world, myAssetManager)
-        val myTable = scene2d.table {
+
+        val myTable = createTable()
+        myWindow = createWindow()
+
+
+        centerActor(myWindow, .9f)
+        centerActor(myTable, 1f)
+
+        uiStage.addActor(myTable)
+        uiStage.addActor(myWindow)
+
+        addActor(player)
+        addActor(floor)
+
+        inputMultiplexer.addProcessor(player)
+    }
+
+    private fun createTable(): Table {
+        return scene2d.table {
             align(Align.top)
             textButton("reset") {
                 addListener(object : ChangeListener() {
                     override fun changed(event: ChangeEvent?, actor: Actor?) {
-                        world.destroyBody(player.body)
-                        world.destroyBody(floor.body)
-                        hide()
-                        show()
+                        restart()
                     }
 
                 })
@@ -58,11 +73,17 @@ class TestGame(val game: MyGAme, val myAssetManager: AssetManager) : AbstractScr
             }
 
         }
-        myWindow = scene2d.window("Settings") {
+    }
+
+    private fun createWindow(): Window {
+        return scene2d.window("Settings") {
             isVisible = false
             isMovable = false
+
             pad(10f)
+
             label("maxVelocity ")
+
             val vSlider = slider(.5f, 20f, 1f, false) {
                 value = prefs.maxVelocity
                 player.maxVelocity = prefs.maxVelocity
@@ -109,17 +130,14 @@ class TestGame(val game: MyGAme, val myAssetManager: AssetManager) : AbstractScr
             jLabel = label(String.format("%.1f", jSlider.value))
 
         }
-
-        centerActor(myWindow, .9f)
-        centerActor(myTable, 1f)
-        uiStage.addActor(myTable)
-        uiStage.addActor(myWindow)
-
-        addActor(player)
-        addActor(floor)
-        inputMultiplexer.addProcessor(player)
     }
 
+    private fun restart() {
+        world.destroyBody(player.body)
+        world.destroyBody(floor.body)
+        hide()
+        show()
+    }
 
     override fun keyDown(keyCode: Int): Boolean {
         if (keyCode == Keys.ESCAPE) {

@@ -16,19 +16,27 @@ import ktx.assets.disposeSafely
 import me.jhonn.game.constant.GameConstant.ConvertUnits.toGameUnits
 
 
-class PlayerActor(x: Float, y: Float, private val world: World, myAssetManager: AssetManager) :
-    AbstractActor(world, myAssetManager), InputProcessor {
-    var maxVelocity = 3f
-    var moveForce = 8f
-    var jumpForce = 8f
+class PlayerActor(
+    x: Float, y: Float, private val world: World,
+    assetManager: AssetManager
+) : AbstractActor(world, assetManager),
+    InputProcessor {
 
-    private var moveState: MoveState = MoveState.MS_STOP
-    private val soundJump = myAssetManager.get<Sound>("sounds/jump.mp3")
-    private val soundSlash = myAssetManager.get<Sound>("sounds/slash.mp3")
+    var maxVelocity = 3f
+    var moveForce = 20f
+    var jumpForce = 13.5f
+
+    private var moveState: MoveState = MoveState.MS_IDLE
+    private var runningAction: Boolean = false
+
+    private val soundJump = assetManager.get<Sound>("sounds/jump.mp3")
+    private val soundSlash = assetManager.get<Sound>("sounds/slash.mp3")
+
+
     var onTheFloor = false
         set(onTheFloor) {
             if (onTheFloor) {
-                moveState = MoveState.MS_STOP
+                moveState = MoveState.MS_IDLE
             }
             field = onTheFloor
         }
@@ -37,15 +45,19 @@ class PlayerActor(x: Float, y: Float, private val world: World, myAssetManager: 
     init {
         setPosition(x, y)
         loadAnimation()
+        frame = animationManager.getFrame()
         createBody()
     }
 
     private fun loadAnimation() {
-        animationManager.loadAnimationFromAtlas(AnimationType.IDLE.key, .7f)
-        animationManager.loadAnimationFromAtlas(AnimationType.JUMP.key, Animation.PlayMode.NORMAL, .05f)
-        animationManager.loadAnimationFromAtlas(AnimationType.WALK.key, .3f)
-        animationManager.loadAnimationFromAtlas(AnimationType.ATTACK.key, Animation.PlayMode.NORMAL, .07f)
-        frame = animationManager.getFrame()
+
+        with(animationManager) {
+            loadAnimationFromAtlas(AnimationType.IDLE.key, .7f)
+            loadAnimationFromAtlas(AnimationType.JUMP.key, Animation.PlayMode.NORMAL, .05f)
+            loadAnimationFromAtlas(AnimationType.WALK.key, .3f)
+            loadAnimationFromAtlas(AnimationType.ATTACK.key, Animation.PlayMode.NORMAL, .07f)
+
+        }
 
     }
 
@@ -68,7 +80,7 @@ class PlayerActor(x: Float, y: Float, private val world: World, myAssetManager: 
         fixtureDef.apply {
             shape = polygonShape
             density = 1f
-            friction = 1f
+            friction = 2f
         }
 
         body.createFixture(fixtureDef).apply { userData = this@PlayerActor }
@@ -90,50 +102,106 @@ class PlayerActor(x: Float, y: Float, private val world: World, myAssetManager: 
         frame = animationManager.getFrame()
         animationManager.update(delta)
 
+
+        keyBoardListener()
+        limitVelocityX(delta)
+        changeAnimation()
+        playSounds()
+
+    }
+
+    private fun keyBoardListener() {
+        val canWalk = (moveState != MoveState.MS_JUMP && moveState != MoveState.MS_ATTACK)
+
         if (Gdx.input.isKeyPressed(Keys.LEFT)) {
-            if (moveState != MoveState.JUMPING) {
+            if (canWalk) {
                 moveState = MoveState.MS_LEFT
             }
 
         } else if (Gdx.input.isKeyPressed(Keys.RIGHT)) {
-            if (moveState != MoveState.JUMPING) {
+            if (canWalk) {
                 moveState = MoveState.MS_RIGHT
             }
-
         }
-        limitVelocityX(delta)
+    }
+
+    private fun changeAnimation() {
+        when (moveState) {
+            MoveState.MS_JUMP -> {
+                animationManager.setCurrentAnimation(AnimationType.JUMP.key)
+            }
+
+            MoveState.MS_ATTACK -> {
+                animationManager.setCurrentAnimation(AnimationType.ATTACK.key)
+                if (animationManager.isAnimationFinished()) {
+                    moveState = MoveState.MS_IDLE
+                }
+            }
+
+            MoveState.MS_IDLE -> {
+                animationManager.setCurrentAnimation(AnimationType.IDLE.key)
+            }
+
+            MoveState.MS_LEFT -> {
+                animationManager.setCurrentAnimation(AnimationType.WALK.key)
+                isFlip = true
+            }
+
+            MoveState.MS_RIGHT -> {
+                animationManager.setCurrentAnimation(AnimationType.WALK.key)
+                isFlip = false
+            }
+        }
 
     }
 
     private fun move(delta: Float) {
-        if (moveState == MoveState.MS_LEFT) {
-            val force = body.mass * delta * toGameUnits(moveForce)
-            body.applyForce(Vector2(-force, 0f), body.position, true)
-            animationManager.setCurrentAnimation(AnimationType.WALK.key)
-            isFlip = true
-        } else
-            if (moveState == MoveState.MS_RIGHT) {
-                val force = body.mass * Gdx.graphics.deltaTime * toGameUnits(moveForce)
-                body.applyForce(Vector2(force, 0f), body.position, true)
-                animationManager.setCurrentAnimation(AnimationType.WALK.key)
-                isFlip = false
-            } else
-                if (moveState == MoveState.JUMPING) {
-                    jump(delta)
-                    animationManager.setCurrentAnimation(AnimationType.JUMP.key)
-                } else if (moveState == MoveState.MS_STOP) {
-                    body.linearDamping = .1f
-                    animationManager.setCurrentAnimation(AnimationType.IDLE.key)
-                } else if (moveState == MoveState.ATTACK) {
-                    animationManager.setCurrentAnimation(AnimationType.ATTACK.key)
-                    if (animationManager.isAnimationFinished()) {
-                        moveState = MoveState.MS_STOP
-                    }
-                }
+        val force = body.mass * delta * toGameUnits(moveForce)
+        when (moveState) {
+            MoveState.MS_JUMP -> {
+                jump(delta)
+            }
 
+            MoveState.MS_IDLE -> {
+                body.linearDamping = 1f
+            }
+
+            MoveState.MS_LEFT -> {
+                body.applyForce(Vector2(-force, 0f), body.position, true)
+            }
+
+            MoveState.MS_RIGHT -> {
+                body.applyForce(Vector2(force, 0f), body.position, true)
+            }
+
+            else -> {
+                return
+            }
+        }
 
     }
 
+    private fun playSounds() {
+
+        runningAction = when (moveState) {
+            MoveState.MS_JUMP -> {
+                if (runningAction) return
+                soundJump.play()
+                true
+            }
+
+            MoveState.MS_ATTACK -> {
+                if (runningAction) return
+                soundSlash.play()
+                true
+            }
+
+            else -> {
+                false
+            }
+
+        }
+    }
 
     private fun jump(delta: Float) {
         if (onTheFloor) {
@@ -144,19 +212,19 @@ class PlayerActor(x: Float, y: Float, private val world: World, myAssetManager: 
     }
 
     override fun keyDown(keycode: Int): Boolean {
-        if (keycode == Keys.SPACE) {
-            if (onTheFloor) soundJump.play()
-            moveState = MoveState.JUMPING
-        } else if (keycode == Keys.E) {
-            moveState = MoveState.ATTACK
+        if (keycode == Keys.SPACE && moveState != MoveState.MS_JUMP) {
+            moveState = MoveState.MS_JUMP
+
+        } else if (keycode == Keys.E && moveState != MoveState.MS_ATTACK) {
             soundSlash.play()
+            moveState = MoveState.MS_ATTACK
         }
         return false
     }
 
     override fun keyUp(keycode: Int): Boolean {
-        if (moveState != MoveState.JUMPING && moveState != MoveState.ATTACK) {
-            moveState = MoveState.MS_STOP
+        if (moveState != MoveState.MS_JUMP && moveState != MoveState.MS_ATTACK) {
+            moveState = MoveState.MS_IDLE
         }
         return false
     }
@@ -186,7 +254,7 @@ class PlayerActor(x: Float, y: Float, private val world: World, myAssetManager: 
     }
 }
 
-enum class AnimationType {
+private enum class AnimationType {
     IDLE {
         override val key: String
             get() = "player/idle"
@@ -207,10 +275,6 @@ enum class AnimationType {
     abstract val key: String
 }
 
-enum class MoveState {
-    MS_STOP,
-    MS_LEFT,
-    MS_RIGHT,
-    JUMPING,
-    ATTACK
+private enum class MoveState {
+    MS_IDLE, MS_LEFT, MS_RIGHT, MS_JUMP, MS_ATTACK
 }

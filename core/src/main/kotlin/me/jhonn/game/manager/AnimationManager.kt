@@ -8,8 +8,8 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 
 
-class AnimationManager(myAssetManager: AssetManager) {
-    private val atlas: TextureAtlas = myAssetManager.get("graphics/graphics.atlas")
+class AnimationManager(assetManager: AssetManager) {
+    private val atlas: TextureAtlas = assetManager.get("graphics/graphics.atlas")
     private var stateTime: Float = 0f
     private val animationsCache = mutableMapOf<String, Animation<AtlasRegion>>()
     private lateinit var currentAnimationKey: String
